@@ -17,3 +17,6 @@ dev = [
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
+
+[project.scripts]
+py-bugger = "src.py_bugger:main"
