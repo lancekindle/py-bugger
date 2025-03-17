@@ -1,0 +1,14 @@
+[project]
+name = "py-bugger"
+description = ""
+version = "0.1.0"
+requires-python = ">=3.9"
+
+dependencies = []
+
+[dependency-groups]
+dev = ["black", "pytest"]
+
+[build-system]
+requires = ["uv"]
+build-backend = "uv"
