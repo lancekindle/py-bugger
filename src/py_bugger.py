@@ -1,4 +1,4 @@
-import ast
+import libcst as cst
 import os
 import random
 from pathlib import Path
@@ -6,16 +6,17 @@ from pathlib import Path
 import cli
 
 
-class ImportModifier(ast.NodeTransformer):
+class ImportModifier(cst.CSTTransformer):
     """Modify imports in the user's project."""
 
-    def visit_Import(self, node):
+    def leave_Import(self, original_node, updated_node):
         """Modify a direct `import <package>` statement."""
-        if node.names:
-            print(node)
+        names = updated_node.names
+        if names:
+            print(names)
             breakpoint()
 
-        return node
+        return updated_node
 
 
 def main():
@@ -32,14 +33,13 @@ def main():
 
         # Read user's code.
         source = path.read_text()
-        tree = ast.parse(source)
+        tree = cst.parse_module(source)
 
         # Modify user's code.
-        tree = ImportModifier().visit(tree)
-        source_modified = ast.unparse(tree)
+        modified_tree = tree.visit(ImportModifier())
 
         # Rewrite user's code.
-        path.write_text(source_modified)
+        path.write_text(modified_tree.code)
 
         print("  Modified file.")
 
