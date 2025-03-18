@@ -9,6 +9,7 @@ import shutil
 import shlex
 import subprocess
 import filecmp
+import os
 
 
 # --- Test functions ---
@@ -38,9 +39,13 @@ def test_bare_call(tmp_path_factory, e2e_config):
 
 def test_help(e2e_config):
     """Test output of `py-bugger --help`."""
+    # Set an explicit column width, so output is consistent across systems.
+    env = os.environ.copy()
+    env["COLUMNS"] = "80"
+
     cmd = "py-bugger --help"
     cmd_parts = shlex.split(cmd)
-    stdout = subprocess.run(cmd_parts, capture_output=True).stdout.decode()
+    stdout = subprocess.run(cmd_parts, capture_output=True, env=env).stdout.decode()
 
     path_help_output = e2e_config.path_reference_files / "help.txt"
     assert stdout == path_help_output.read_text()
