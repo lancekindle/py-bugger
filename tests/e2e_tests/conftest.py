@@ -1,4 +1,5 @@
 from pathlib import Path
+import sys
 
 import pytest
 
@@ -21,6 +22,9 @@ def e2e_config():
         path_name_picker = path_sample_scripts / "name_picker.py"
 
         # Python executable
-        python_cmd = path_root / ".venv" / "bin" / "python"
+        if sys.platform ==  "win32":
+            python_cmd = path_root / ".venv" / "Scripts" / "python"
+        else:
+            python_cmd = path_root / ".venv" / "bin" / "python"
 
     return Config()

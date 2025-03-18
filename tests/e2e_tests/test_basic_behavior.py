@@ -67,7 +67,7 @@ def test_modulenotfounderror(tmp_path_factory, e2e_config):
     subprocess.run(cmd_parts)
 
     # Run file, should raise ModuleNotFoundError.
-    cmd = f"{e2e_config.python_cmd} {path_dst.as_posix()}"
+    cmd = f"{e2e_config.python_cmd.as_posix()} {path_dst.as_posix()}"
     cmd_parts = shlex.split(cmd)
     stderr = subprocess.run(cmd_parts, capture_output=True).stderr.decode()
     assert "Traceback (most recent call last)" in stderr
