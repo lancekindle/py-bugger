@@ -31,7 +31,7 @@ def test_bare_call(tmp_path_factory, e2e_config):
 
     # Verify output.
     path_bare_output = e2e_config.path_reference_files / "bare.txt"
-    assert stdout == path_bare_output.read_text()
+    assert stdout.replace("\r\n", "\n") == path_bare_output.read_text().replace("\r\n", "\n")
 
     # Check that .py file is unchanged.
     assert filecmp.cmp(e2e_config.path_name_picker, path_dst)
