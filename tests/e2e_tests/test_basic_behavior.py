@@ -48,7 +48,7 @@ def test_help(e2e_config):
     stdout = subprocess.run(cmd_parts, capture_output=True, env=env).stdout.decode()
 
     path_help_output = e2e_config.path_reference_files / "help.txt"
-    assert stdout == path_help_output.read_text()
+    assert stdout.replace("\r\n", "\n") == path_help_output.read_text().replace("\r\n", "\n")
 
 
 def test_modulenotfounderror(tmp_path_factory, e2e_config):
