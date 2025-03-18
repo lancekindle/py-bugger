@@ -13,8 +13,18 @@ class ImportModifier(cst.CSTTransformer):
         """Modify a direct `import <package>` statement."""
         names = updated_node.names
         if names:
-            print(names)
-            breakpoint()
+            original_name = names[0].name.value
+
+            # Remove one letter from the package name.
+            chars = list(original_name)
+            char_remove = random.choice(chars)
+            chars.remove(char_remove)
+            new_name = "".join(chars)
+
+            # Modify the node name.
+            new_names = [cst.ImportAlias(name=cst.Name(new_name))]
+
+            return updated_node.with_changes(names=new_names)
 
         return updated_node
 
