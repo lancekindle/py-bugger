@@ -3,8 +3,8 @@ import os
 import random
 from pathlib import Path
 
-import cli
-import cli_messages
+import py_bugger.cli as cli
+import py_bugger.cli_messages as cli_messages
 
 
 class ImportModifier(cst.CSTTransformer):
