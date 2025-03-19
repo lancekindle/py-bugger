@@ -18,7 +18,7 @@ The winner: Willie!
 To practice debugging, we'll introduce a `ModuleNotFoundError`:
 
 ```sh
-$ pip install py-bugger
+$ pip install https://github.com/ehmatthes/py-bugger.git
 $ py-bugger --exception-type ModuleNotFoundError
 Introducing a ModuleNotFoundError...
   Modified file.

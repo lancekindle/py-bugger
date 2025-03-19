@@ -8,3 +8,5 @@ __pycache__/
 build/
 src/py_bugger.egg-info/
 py_bugger.egg-info/
+
+dist/
