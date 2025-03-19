@@ -1,9 +1,9 @@
 py-bugger
 ===
 
-When people are learning debugging, they typically have to learn it by focusing on whatever bugs come up in their code. They don't get to work on specific kinds of errors, and they don't get to progress from simple to more complex bugs.
+When people learn debugging, they typically have to learn it by focusing on whatever bugs come up in their code. They don't get to work on specific kinds of errors, and they don't get the chance to progress from simple to more complex bugs. This is quite different from how we teach and learn just about any other skill.
 
-`py-bugger` lets you intentionally introduce specific kinds and numbers of bugs to a working project. You can introduce bugs to a project with a single file, or a much larger project.
+`py-bugger` lets you intentionally introduce specific kinds and numbers of bugs to a working project. You can introduce bugs to a project with a single file, or a much larger project. This is much different from the typical process of waiting for your next bug to show up, or introducing a bug yourself. `py-bugger` gives people a structured way to learn debugging, just as we approach all other areas of programming.
 
 Example usage
 ---
