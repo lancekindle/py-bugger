@@ -1,5 +1,5 @@
 [project]
-name = "py-bugger"
+name = "python-bugger"
 description = "Practice debugging, by intentionally introducing bugs into an existing codebase."
 readme = "README.md"
 version = "0.1.0"
