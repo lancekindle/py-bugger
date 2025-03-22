@@ -6,7 +6,6 @@ __pycache__/
 .DS_Store
 
 build/
-src/py_bugger.egg-info/
-py_bugger.egg-info/
+src/python_bugger.egg-info/
 
 dist/
