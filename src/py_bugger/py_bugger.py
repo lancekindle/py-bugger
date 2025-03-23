@@ -3,9 +3,6 @@ import os
 import random
 from pathlib import Path
 
-import py_bugger.cli as cli
-import py_bugger.cli_messages as cli_messages
-
 
 class ImportModifier(cst.CSTTransformer):
     """Modify imports in the user's project."""
@@ -30,20 +27,14 @@ class ImportModifier(cst.CSTTransformer):
         return updated_node
 
 
-def main():
+def main(exception_type, target_dir):
 
-    args = cli.parse_cli_args()
-
-    # Show message about bare `py-bugger` calls.
-    if not any([a for a in vars(args).values()]):
-        print(cli_messages.msg_bare_call)
-
-    if args.exception_type == "ModuleNotFoundError":
+    if exception_type == "ModuleNotFoundError":
         print("Introducing a ModuleNotFoundError...")
 
         # Get the first .py file in the project's root dir.
-        if args.target_dir:
-            path_project = Path(args.target_dir)
+        if target_dir:
+            path_project = Path(target_dir)
             assert path_project.exists()
         else:
             path_project = Path(os.getcwd())
@@ -62,7 +53,3 @@ def main():
         path.write_text(modified_tree.code)
 
         print("  Modified file.")
-
-
-if __name__ == "__main__":
-    main()
