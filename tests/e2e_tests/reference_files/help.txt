@@ -1,6 +1,7 @@
 Usage: py-bugger [OPTIONS]
 
-  CLI entrypoint for python-bugger.
+  Practice debugging, by intentionally introducing bugs into an existing
+  codebase.
 
 Options:
   -e, --exception-type TEXT  What kind of exception to induce.

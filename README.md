@@ -18,11 +18,13 @@ The winner: Willie!
 To practice debugging, we'll introduce a `ModuleNotFoundError`:
 
 ```sh
-$ pip install https://github.com/ehmatthes/py-bugger.git
+$ pip install python-bugger
 $ py-bugger --exception-type ModuleNotFoundError
 Introducing a ModuleNotFoundError...
   Modified file.
 ```
+
+(The package name `py-bugger` was not available on PyPI. I'll make sure the repo name and the package name are consistent before a 1.0 release.)
 
 Now, run the project again and you should see it fail:
 
@@ -47,16 +49,16 @@ This project is a proof of concept at the moment; I'm releasing it at this stage
 
 ```sh
 $ py-bugger --help
-usage: py-bugger [-h] [-e EXCEPTION_TYPE] [--target-dir TARGET_DIR]
+Usage: py-bugger [OPTIONS]
 
-Practice debugging, by intentionally introducing bugs into an existing codebase.
+  Practice debugging, by intentionally introducing bugs into an existing
+  codebase.
 
-options:
-  -h, --help            show this help message and exit
-  -e EXCEPTION_TYPE, --exception-type EXCEPTION_TYPE
-                        What kind of exception to induce.
-  --target-dir TARGET_DIR
-                        What code directory to target. (Be careful when using this arg!)
+Options:
+  -e, --exception-type TEXT  What kind of exception to induce.
+  --target-dir TEXT          What code directory to target. (Be careful when
+                             using this arg!)
+  --help                     Show this message and exit.
 ```
 
 ### Trying `py-bugger`
@@ -67,7 +69,7 @@ If you're interested in trying the project at this early stage, do the following
 - Make sure the .py file has at least one `import` statement.
 - Run your file, and make sure it works.
 - Make an initial Git commit.
-- Install `py-bugger`.
+- Install `python-bugger`.
 - Run `py-bugger -e ModuleNotFoundError`.
 - Run your project, and see if it generates a `ModuleNotFoundError` exception.
 

@@ -19,7 +19,7 @@ from py_bugger import cli_messages
     help="What code directory to target. (Be careful when using this arg!)",
 )
 def cli(exception_type, target_dir):
-    """CLI entrypoint for python-bugger."""
+    """Practice debugging, by intentionally introducing bugs into an existing codebase."""
     if not exception_type:
         click.echo(cli_messages.msg_bare_call)
         sys.exit()
