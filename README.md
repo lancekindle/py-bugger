@@ -74,6 +74,8 @@ If you're interested in trying the project at this early stage, do the following
 - Run `py-bugger -e ModuleNotFoundError`.
 - Run your project, and see if it generates a `ModuleNotFoundError` exception.
 
+You can also clone a working Python project from GitHub, and then install and run `py-bugger`. If you run the project, you should see the expected error. If you run the test suite, it should fail in the expected way.
+
 Brief Roadmap
 ---
 
