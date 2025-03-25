@@ -7,6 +7,7 @@ import pytest
 
 # --- Fixtures ---
 
+
 @pytest.fixture(autouse=True, scope="session")
 def set_random_seed_env():
     """Make random selections repeatable."""
@@ -27,9 +28,11 @@ def e2e_config():
 
         path_sample_code = path_tests / "sample_code"
         path_sample_scripts = path_sample_code / "sample_scripts"
+
         path_name_picker = path_sample_scripts / "name_picker.py"
         path_system_info = path_sample_scripts / "system_info_script.py"
         path_ten_imports = path_sample_scripts / "ten_imports.py"
+        path_zero_imports = path_sample_scripts / "zero_imports.py"
 
         # Python executable
         if sys.platform == "win32":
