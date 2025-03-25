@@ -48,7 +48,6 @@ This project is a proof of concept at the moment; I'm releasing it at this stage
 ### Usage:
 
 ```sh
-$ py-bugger --help
 Usage: py-bugger [OPTIONS]
 
   Practice debugging, by intentionally introducing bugs into an existing
@@ -58,6 +57,8 @@ Options:
   -e, --exception-type TEXT  What kind of exception to induce.
   --target-dir TEXT          What code directory to target. (Be careful when
                              using this arg!)
+  --target-file TEXT         Target a single .py file.
+  -n, --num-bugs INTEGER     How many bugs to introduce.
   --help                     Show this message and exit.
 ```
 
