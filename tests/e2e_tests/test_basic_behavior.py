@@ -15,8 +15,8 @@ import os
 # --- Test functions ---
 
 
-def test_bare_call(tmp_path_factory, e2e_config):
-    """Test that bare py-bugger call does not modify file."""
+def test_no_exception_type(tmp_path_factory, e2e_config):
+    """Test output for not passing --exception-type."""
 
     # Copy sample code to tmp dir.
     tmp_path = tmp_path_factory.mktemp("sample_code")
@@ -31,10 +31,8 @@ def test_bare_call(tmp_path_factory, e2e_config):
     stdout = subprocess.run(cmd_parts, capture_output=True).stdout.decode()
 
     # Verify output.
-    path_bare_output = e2e_config.path_reference_files / "bare.txt"
-    assert stdout.replace("\r\n", "\n") == path_bare_output.read_text().replace(
-        "\r\n", "\n"
-    )
+    path = e2e_config.path_reference_files / "no_exception_type.txt"
+    assert stdout.replace("\r\n", "\n") == path.read_text().replace("\r\n", "\n")
 
     # Check that .py file is unchanged.
     assert filecmp.cmp(e2e_config.path_name_picker, path_dst)
@@ -248,3 +246,54 @@ def test_no_bugs(tmp_path_factory, e2e_config):
     stdout = subprocess.run(cmd_parts, capture_output=True).stdout.decode()
 
     assert "Unable to introduce any of the requested bugs." in stdout
+
+
+def test_target_dir_and_file(tmp_path_factory, e2e_config):
+    """Test an invalid call including --target-dir and --target-file."""
+    tmp_path = tmp_path_factory.mktemp("sample_code")
+    print(f"\nCopying code to: {tmp_path.as_posix()}")
+
+    path_dst = tmp_path / e2e_config.path_zero_imports.name
+    shutil.copyfile(e2e_config.path_zero_imports, path_dst)
+
+    # Run py-bugger against directory.
+    cmd = f"py-bugger --exception-type ModuleNotFoundError --target-dir {tmp_path.as_posix()} --target-file {path_dst.as_posix()}"
+    cmd_parts = shlex.split(cmd)
+    stdout = subprocess.run(cmd_parts, capture_output=True).stdout.decode()
+
+    assert (
+        "Target file overrides target dir. Please only pass one of these args."
+        in stdout
+    )
+
+
+def test_target_file(tmp_path_factory, e2e_config):
+    """Test for passing --target-file."""
+    # Copy two sample scripts to tmp dir.
+    tmp_path = tmp_path_factory.mktemp("sample_code")
+    print(f"\nCopying code to: {tmp_path.as_posix()}")
+
+    path_dst_ten_imports = tmp_path / e2e_config.path_ten_imports.name
+    shutil.copyfile(e2e_config.path_ten_imports, path_dst_ten_imports)
+
+    path_dst_system_info = tmp_path / e2e_config.path_system_info.name
+    shutil.copyfile(e2e_config.path_system_info, path_dst_system_info)
+
+    # Run py-bugger against directory.
+    cmd = f"py-bugger --exception-type ModuleNotFoundError --target-file {path_dst_system_info.as_posix()}"
+    print(cmd)
+    cmd_parts = shlex.split(cmd)
+    stdout = subprocess.run(cmd_parts, capture_output=True).stdout.decode()
+
+    assert "All requested bugs inserted." in stdout
+
+    # Run file, should raise ModuleNotFoundError.
+    cmd = f"{e2e_config.python_cmd.as_posix()} {path_dst_system_info.as_posix()}"
+    cmd_parts = shlex.split(cmd)
+    stderr = subprocess.run(cmd_parts, capture_output=True).stderr.decode()
+    assert "Traceback (most recent call last)" in stderr
+    assert 'system_info_script.py", line 4, in <module>' in stderr
+    assert "ModuleNotFoundError: No module named 'o'" in stderr
+
+    # Other file should not be changed.
+    assert filecmp.cmp(e2e_config.path_ten_imports, path_dst_ten_imports)
