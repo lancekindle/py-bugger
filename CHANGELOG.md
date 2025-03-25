@@ -6,6 +6,12 @@ Changelog: python-bugger
 
 Still only results in a `ModuleNotFoundError`, but creates a much wider range of bugs to induce that error. Also, much better overall structure for continued development.
 
+### 0.2.1
+
+#### External changes
+
+- Filters out .py files from dirs named `test_code/`.
+
 ### 0.2.0
 
 #### External changes
