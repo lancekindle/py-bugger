@@ -43,7 +43,7 @@ If you get stuck, all the bugs that were introduced are contained in a single Gi
 Current state
 ---
 
-This project is a proof of concept at the moment; I'm releasing it at this stage to get feedback about whether it's a useful tool. It should work on all OSes, but it only introduces one kind of bug. If there's any interest at all in this project, I'll quickly bring it to a more usable state.
+This project is a proof of concept at the moment; I'm releasing it at this stage to get feedback about whether it's a useful tool. It should work on all OSes, but it only introduces two kinds of bug. If there's any interest at all in this project, I'll quickly bring it to a more usable state.
 
 ### Usage:
 
@@ -67,12 +67,12 @@ Options:
 If you're interested in trying the project at this early stage, do the following:
 
 - Make a new directory with a single .py file in it.
-- Make sure the .py file has at least one `import` statement.
+- Make sure the .py file has at least one `import` statement if you're targing `ModuleNotFoundError`. If you're targeting `AttributeError`, make sure the file has at least one attribute.
 - Run your file, and make sure it works.
 - Make an initial Git commit.
 - Install `python-bugger`.
-- Run `py-bugger -e ModuleNotFoundError`.
-- Run your project, and see if it generates a `ModuleNotFoundError` exception.
+- Run `py-bugger -e ModuleNotFoundError`, or `py-bugger -e AttributeError`.
+- Run your project, and see if it generates the requested exception.
 
 You can also clone a working Python project from GitHub, and then install and run `py-bugger`. If you run the project, you should see the expected error. If you run the test suite, it should fail in the expected way.
 
