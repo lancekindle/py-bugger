@@ -10,6 +10,7 @@ import shlex
 import subprocess
 import filecmp
 import os
+import sys
 
 
 # --- Test functions ---
@@ -297,3 +298,63 @@ def test_target_file(tmp_path_factory, e2e_config):
 
     # Other file should not be changed.
     assert filecmp.cmp(e2e_config.path_ten_imports, path_dst_ten_imports)
+
+def test_attribute_error(tmp_path_factory, e2e_config):
+    """py-bugger --exception-type AttributeError"""
+
+    # Copy sample code to tmp dir.
+    tmp_path = tmp_path_factory.mktemp("sample_code")
+    print(f"\nCopying code to: {tmp_path.as_posix()}")
+
+    path_dst = tmp_path / e2e_config.path_name_picker.name
+    shutil.copyfile(e2e_config.path_name_picker, path_dst)
+
+    # Run py-bugger against directory.
+    cmd = f"py-bugger --exception-type AttributeError --target-dir {tmp_path.as_posix()}"
+    cmd_parts = shlex.split(cmd)
+
+    stdout = subprocess.run(cmd_parts, capture_output=True).stdout.decode()
+
+    assert "All requested bugs inserted." in stdout
+
+    # Run file, should raise AttributeError.
+    cmd = f"{e2e_config.python_cmd.as_posix()} {path_dst.as_posix()}"
+    cmd_parts = shlex.split(cmd)
+    stderr = subprocess.run(cmd_parts, capture_output=True).stderr.decode()
+    assert "Traceback (most recent call last)" in stderr
+    assert 'name_picker.py", line 7, in <module>' in stderr
+    assert "AttributeError: 'str' object has no attribute 'tite'. Did you mean: 'title'?" in stderr
+
+    # Make sure only one attribute was affected.
+    modified_source = path_dst.read_text()
+    assert "random.choice(names)" in modified_source
+
+def test_one_node_changed(tmp_path_factory, e2e_config):
+    """Test that only one node in a file is modified for identical nodes."""
+    # Copy sample code to tmp dir.
+    tmp_path = tmp_path_factory.mktemp("sample_code")
+    print(f"\nCopying code to: {tmp_path.as_posix()}")
+
+    path_dst = tmp_path / e2e_config.path_dog.name
+    shutil.copyfile(e2e_config.path_dog, path_dst)
+
+    # Run py-bugger against directory.
+    cmd = f"py-bugger --exception-type AttributeError --target-dir {tmp_path.as_posix()}"
+    cmd_parts = shlex.split(cmd)
+
+    stdout = subprocess.run(cmd_parts, capture_output=True).stdout.decode()
+
+    assert "All requested bugs inserted." in stdout
+
+    # Run file, should raise AttributeError.
+    cmd = f"{e2e_config.python_cmd.as_posix()} {path_dst.as_posix()}"
+    cmd_parts = shlex.split(cmd)
+    stderr = subprocess.run(cmd_parts, capture_output=True).stderr.decode()
+    assert "Traceback (most recent call last)" in stderr
+    assert 'dog.py", line 9, in <module>' in stderr
+    assert "AttributeError: 'Dog' object has no attribute 'name'. Did you mean: 'nam'?" in stderr
+
+    # Make sure only one attribute was affected.
+    modified_source = path_dst.read_text()
+    assert "self.name" in modified_source
+    assert "self.nam" in modified_source
