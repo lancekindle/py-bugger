@@ -66,33 +66,21 @@ class AttributeModifier(cst.CSTTransformer):
         # can match node_to_break, so make sure we only modify one node.
         self.bug_generated = False
 
-        # DEBUGGING:
-        # self.node_index = min(3, self.node_index)
-
     def leave_Attribute(self, original_node, updated_node):
         """Modify an attribute name, to generate AttributeError."""
         attr = updated_node.attr
 
         if original_node.deep_equals(self.node_to_break) and not self.bug_generated:
-            # print("HERE", self.node_index, self.identical_nodes_visited)
             # If there are identical nodes and this isn't the right one, bump count
             # and return unmodified node.
             if self.identical_nodes_visited != self.node_index:
                 self.identical_nodes_visited += 1
                 return updated_node
 
-            # print("HEREHERE")
-
             original_identifier = attr.value
 
             # Add a typo to the attribute name.
             new_identifier = bug_utils.make_typo(original_identifier)
-
-            # # Remove one letter from the attribute name.
-            # chars = list(original_identifier)
-            # char_remove = random.choice(chars)
-            # chars.remove(char_remove)
-            # new_identifier = "".join(chars)
 
             # Modify the node name.
             new_attr = cst.Name(new_identifier)
@@ -119,7 +107,7 @@ def module_not_found_bugger(py_files, num_bugs):
     # Select the set of nodes to modify. If num_bugs is greater than the number
     # of nodes, just change each node.
     num_changes = min(len(paths_nodes), num_bugs)
-    paths_nodes_modify = random.choices(paths_nodes, k=num_changes)
+    paths_nodes_modify = random.sample(paths_nodes, k=num_changes)
 
     # Modify each relevant path.
     bugs_added = 0
@@ -156,7 +144,7 @@ def attribute_error_bugger(py_files, num_bugs):
     # Select the set of nodes to modify. If num_bugs is greater than the number
     # of nodes, just change each node.
     num_changes = min(len(paths_nodes), num_bugs)
-    paths_nodes_modify = random.choices(paths_nodes, k=num_changes)
+    paths_nodes_modify = random.sample(paths_nodes, k=num_changes)
 
     # Modify each relevant path.
     bugs_added = 0
@@ -171,9 +159,6 @@ def attribute_error_bugger(py_files, num_bugs):
             node_index = random.randrange(0, node_count - 1)
         else:
             node_index = 0
-        # breakpoint()
-        # print("nc:", node_count)
-        # print("node:", node)
 
         # Modify user's code.
         try:
@@ -192,7 +177,48 @@ def attribute_error_bugger(py_files, num_bugs):
     return bugs_added
 
 
+def indentation_error_bugger(py_files, num_bugs):
+    """Induce an IndentationError.
+
+    This simply parses raw source files. Conditions are pretty concrete, and LibCST
+    doesn't make it easy to create invalid syntax.
+
+    Returns:
+        Int: Number of bugs made.
+    """
+    # Find relevant files and lines.
+    targets = ["for", "while", "def", "class", "if", "elif", "else", "with", "match", "case", "try", "except", "finally"]
+    paths_lines = _get_paths_lines(py_files, targets=targets)
+
+    # Select the set of lines to modify. If num_bugs is greater than the number
+    # of lines, just change each line.
+    num_changes = min(len(paths_lines), num_bugs)
+    paths_lines_modify = random.sample(paths_lines, k=num_changes)
+
+    # Modify each relevant path.
+    bugs_added = 0
+    for path, target_line in paths_lines_modify:
+        if bug_utils.add_indentation(path, target_line):
+            print(f"Added bug to: {path.as_posix()}")
+            bugs_added += 1
+
+    return bugs_added
+
+
 # --- Helper functions ---
+
+
+def _get_paths_lines(py_files, targets):
+    """Get all lines from all files matching targets."""
+    paths_lines = []
+    for path in py_files:
+        lines = path.read_text().splitlines()
+        for line in lines:
+            stripped_line = line.strip()
+            if any([stripped_line.startswith(target) for target in targets]):
+                paths_lines.append((path, line))
+
+    return paths_lines
 
 
 def _get_paths_nodes(py_files, node_type):
@@ -211,30 +237,22 @@ def _get_paths_nodes(py_files, node_type):
     return paths_nodes
 
 
-# class NodeCounter(cst.CSTVisitor):
-#     """Count all nodes of a specific kind."""
+def _get_all_nodes(path):
+    """Get all nodes in a file.
 
-#     def __init__(self, node_type):
-#         self.node_type = node_type
-#         self.node_count = 0
+    This is primarily for development work, where we want to see all the nodes
+    in a short representative file.
 
-#     def on_visit(self, node):
-#         """Increment node_count if node matches.."""
-#         if isinstance(node, self.node_type):
-#             self.node_count += 1
-#         return True
+    Example usage, from a #_bugger() function:
+        nodes = _get_all_nodes(py_files[0])
+    """
+    source = path.read_text()
+    tree = cst.parse_module(source)
 
+    node_collector = NodeCollector(node_type=cst.CSTNode)
+    tree.visit(node_collector)
 
-# def _count_nodes(tree, node_type):
-#     """Count the number of nodes in path that match node.
-
-#     Useful when a file has multiple identical nodes, and we want to choose one.
-#     """
-#     # Count all relevant nodes.
-#     node_counter = NodeCounter(node_type)
-#     tree.visit(node_counter)
-
-#     return node_counter.node_count
+    return node_collector.collected_nodes
 
 
 class NodeCounter(cst.CSTVisitor):

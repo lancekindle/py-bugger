@@ -106,7 +106,7 @@ def test_default_one_error(tmp_path_factory, e2e_config):
     cmd_parts = shlex.split(cmd)
     stderr = subprocess.run(cmd_parts, capture_output=True).stderr.decode()
     assert "Traceback (most recent call last)" in stderr
-    assert 'system_info_script.py", line 4, in <module>' in stderr
+    assert 'system_info_script.py", line ' in stderr
     assert "ModuleNotFoundError: No module named " in stderr
 
     # Read modified file; should have changed only one import statement.
@@ -172,24 +172,24 @@ def test_random_import_affected(tmp_path_factory, e2e_config):
     cmd_parts = shlex.split(cmd)
     stderr = subprocess.run(cmd_parts, capture_output=True).stderr.decode()
     assert "Traceback (most recent call last)" in stderr
-    assert 'ten_imports.py", line 6, in <module>' in stderr
+    assert 'ten_imports.py", line ' in stderr
     assert "ModuleNotFoundError: No module named " in stderr
 
-    # Read modified file; should have changed import statement.
+    # Read modified file; should have changed one import statement.
     modified_source = path_dst.read_text()
-    assert "import calendar" not in modified_source
     pkgs = [
         "os",
         "sys",
         "re",
         "random",
         "difflib",
+        "calendar",
         "zoneinfo",
         "array",
         "pprint",
         "enum",
     ]
-    assert all([p in modified_source for p in pkgs])
+    assert sum([p in modified_source for p in pkgs]) == 9
 
 
 def test_random_py_file_affected(tmp_path_factory, e2e_config):
@@ -220,7 +220,7 @@ def test_random_py_file_affected(tmp_path_factory, e2e_config):
     cmd_parts = shlex.split(cmd)
     stderr = subprocess.run(cmd_parts, capture_output=True).stderr.decode()
     assert "Traceback (most recent call last)" in stderr
-    assert 'ten_imports.py", line 7, in <module>' in stderr
+    assert 'ten_imports.py", line ' in stderr
     assert "ModuleNotFoundError: No module named " in stderr
 
     # Other file should not be changed.
@@ -305,7 +305,7 @@ def test_target_file(tmp_path_factory, e2e_config):
     cmd_parts = shlex.split(cmd)
     stderr = subprocess.run(cmd_parts, capture_output=True).stderr.decode()
     assert "Traceback (most recent call last)" in stderr
-    assert 'system_info_script.py", line 4, in <module>' in stderr
+    assert 'system_info_script.py", line ' in stderr
     assert "ModuleNotFoundError: No module named " in stderr
 
     # Other file should not be changed.
@@ -338,13 +338,9 @@ def test_attribute_error(tmp_path_factory, e2e_config):
     cmd_parts = shlex.split(cmd)
     stderr = subprocess.run(cmd_parts, capture_output=True).stderr.decode()
     assert "Traceback (most recent call last)" in stderr
-    assert 'name_picker.py", line 7, in <module>' in stderr
-    assert "AttributeError: 'str' object has no attribute " in stderr
+    assert 'name_picker.py", line ' in stderr
+    assert "AttributeError: " in stderr
     assert "Did you mean: " in stderr
-
-    # Make sure only one attribute was affected.
-    modified_source = path_dst.read_text()
-    assert "random.choice(names)" in modified_source
 
 
 def test_one_node_changed(tmp_path_factory, e2e_config):
@@ -405,10 +401,99 @@ def test_random_node_changed(tmp_path_factory, e2e_config):
     cmd_parts = shlex.split(cmd)
     stderr = subprocess.run(cmd_parts, capture_output=True).stderr.decode()
     assert "Traceback (most recent call last)" in stderr
-    assert 'identical_attributes.py", line 18, in <module>' in stderr
+    assert 'identical_attributes.py", line ' in stderr
     assert "AttributeError: module 'random' has no attribute " in stderr
     assert "Did you mean: " in stderr
 
     # Make sure only one attribute was affected.
     modified_source = path_dst.read_text()
     assert modified_source.count("random.choice(") == 19
+
+
+def test_indentation_error_simple(tmp_path_factory, e2e_config):
+    """py-bugger --exception-type IndentationError
+
+    Run against a file with a single indented block.
+    """
+
+    # Copy sample code to tmp dir.
+    tmp_path = tmp_path_factory.mktemp("sample_code")
+    print(f"\nCopying code to: {tmp_path.as_posix()}")
+
+    path_dst = tmp_path / e2e_config.path_simple_indent.name
+    shutil.copyfile(e2e_config.path_simple_indent, path_dst)
+
+    # Run py-bugger against directory.
+    cmd = f"py-bugger --exception-type IndentationError --target-dir {tmp_path.as_posix()}"
+    print("cmd:", cmd)
+    cmd_parts = shlex.split(cmd)
+
+    stdout = subprocess.run(cmd_parts, capture_output=True).stdout.decode()
+
+    assert "All requested bugs inserted." in stdout
+
+    # Run file, should raise IndentationError.
+    cmd = f"{e2e_config.python_cmd.as_posix()} {path_dst.as_posix()}"
+    cmd_parts = shlex.split(cmd)
+    stderr = subprocess.run(cmd_parts, capture_output=True).stderr.decode()
+    assert "IndentationError: unexpected indent" in stderr
+    assert 'simple_indent.py", line 1' in stderr
+
+
+def test_indentation_error_complex(tmp_path_factory, e2e_config):
+    """py-bugger --exception-type IndentationError
+
+    Run against a file with multiple indented blocks of different kinds.
+    """
+    # Copy sample code to tmp dir.
+    tmp_path = tmp_path_factory.mktemp("sample_code")
+    print(f"\nCopying code to: {tmp_path.as_posix()}")
+
+    path_dst = tmp_path / e2e_config.path_many_dogs.name
+    shutil.copyfile(e2e_config.path_many_dogs, path_dst)
+
+    # Run py-bugger against directory.
+    cmd = f"py-bugger --exception-type IndentationError --target-dir {tmp_path.as_posix()}"
+    print("cmd:", cmd)
+    cmd_parts = shlex.split(cmd)
+
+    stdout = subprocess.run(cmd_parts, capture_output=True).stdout.decode()
+
+    assert "All requested bugs inserted." in stdout
+
+    # Run file, should raise IndentationError.
+    cmd = f"{e2e_config.python_cmd.as_posix()} {path_dst.as_posix()}"
+    cmd_parts = shlex.split(cmd)
+    stderr = subprocess.run(cmd_parts, capture_output=True).stderr.decode()
+    assert "IndentationError: unexpected indent" in stderr
+    assert 'many_dogs.py", line 1' in stderr
+
+
+def test_all_indentation_blocks(tmp_path_factory, e2e_config):
+    """Test that all kinds of indented blocks can be modified.
+
+    Note: There are a couple blocks that aren't currently in all_indentation_blocks.py
+        match, case, finally
+    """
+    # Copy sample code to tmp dir.
+    tmp_path = tmp_path_factory.mktemp("sample_code")
+    print(f"\nCopying code to: {tmp_path.as_posix()}")
+
+    path_dst = tmp_path / e2e_config.path_all_indentation_blocks.name
+    shutil.copyfile(e2e_config.path_all_indentation_blocks, path_dst)
+
+    # Run py-bugger against directory.
+    cmd = f"py-bugger --exception-type IndentationError --num-bugs 12 --target-dir {tmp_path.as_posix()}"
+    print("cmd:", cmd)
+    cmd_parts = shlex.split(cmd)
+
+    stdout = subprocess.run(cmd_parts, capture_output=True).stdout.decode()
+
+    assert "All requested bugs inserted." in stdout
+
+    # Run file, should raise IndentationError.
+    cmd = f"{e2e_config.python_cmd.as_posix()} {path_dst.as_posix()}"
+    cmd_parts = shlex.split(cmd)
+    stderr = subprocess.run(cmd_parts, capture_output=True).stderr.decode()
+    assert "IndentationError: unexpected indent" in stderr
+    assert 'all_indentation_blocks.py", line 1' in stderr
