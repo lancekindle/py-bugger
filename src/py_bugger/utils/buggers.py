@@ -3,19 +3,24 @@
 import libcst as cst
 import random
 
+from py_bugger.utils import bug_utils
+
 
 # --- CST classes ---
 
 
-class ImportCollector(cst.CSTVisitor):
-    """Visit all import nodes, without modifying."""
+class NodeCollector(cst.CSTVisitor):
+    """Collect all nodes of a specific kind."""
 
-    def __init__(self):
-        self.import_nodes = []
+    def __init__(self, node_type):
+        self.node_type = node_type
+        self.collected_nodes = []
 
-    def visit_Import(self, node):
-        """Collect all import nodes."""
-        self.import_nodes.append(node)
+    def on_visit(self, node):
+        """Visit each node, collecting nodes that match the node type."""
+        if isinstance(node, self.node_type):
+            self.collected_nodes.append(node)
+        return True
 
 
 class ImportModifier(cst.CSTTransformer):
@@ -36,11 +41,8 @@ class ImportModifier(cst.CSTTransformer):
         if original_node.deep_equals(self.node_to_break):
             original_name = names[0].name.value
 
-            # Remove one letter from the package name.
-            chars = list(original_name)
-            char_remove = random.choice(chars)
-            chars.remove(char_remove)
-            new_name = "".join(chars)
+            # Add a typo to the name of the module being imported.
+            new_name = bug_utils.make_typo(original_name)
 
             # Modify the node name.
             new_names = [cst.ImportAlias(name=cst.Name(new_name))]
@@ -50,40 +52,47 @@ class ImportModifier(cst.CSTTransformer):
         return updated_node
 
 
-class AttributeCollector(cst.CSTVisitor):
-    """Visit all attribute-releated nodes, without modifying."""
-
-    def __init__(self):
-        self.attribute_nodes = []
-
-    def visit_Attribute(self, node):
-        """Collect all import nodes."""
-        self.attribute_nodes.append(node)
-
-
 class AttributeModifier(cst.CSTTransformer):
     """Modify attributes in the user's project."""
 
-    def __init__(self, node_to_break):
+    def __init__(self, node_to_break, node_index):
         self.node_to_break = node_to_break
+
+        # There may be identical nodes in the tree. node_index determines which to modify.
+        self.node_index = node_index
+        self.identical_nodes_visited = 0
 
         # Each use of this class should only generate one bug. But multiple nodes
         # can match node_to_break, so make sure we only modify one node.
         self.bug_generated = False
 
+        # DEBUGGING:
+        # self.node_index = min(3, self.node_index)
+
     def leave_Attribute(self, original_node, updated_node):
         """Modify an attribute name, to generate AttributeError."""
         attr = updated_node.attr
 
-
         if original_node.deep_equals(self.node_to_break) and not self.bug_generated:
+            # print("HERE", self.node_index, self.identical_nodes_visited)
+            # If there are identical nodes and this isn't the right one, bump count
+            # and return unmodified node.
+            if self.identical_nodes_visited != self.node_index:
+                self.identical_nodes_visited += 1
+                return updated_node
+
+            # print("HEREHERE")
+
             original_identifier = attr.value
 
-            # Remove one letter from the attribute name.
-            chars = list(original_identifier)
-            char_remove = random.choice(chars)
-            chars.remove(char_remove)
-            new_identifier = "".join(chars)
+            # Add a typo to the attribute name.
+            new_identifier = bug_utils.make_typo(original_identifier)
+
+            # # Remove one letter from the attribute name.
+            # chars = list(original_identifier)
+            # char_remove = random.choice(chars)
+            # chars.remove(char_remove)
+            # new_identifier = "".join(chars)
 
             # Modify the node name.
             new_attr = cst.Name(new_identifier)
@@ -97,6 +106,7 @@ class AttributeModifier(cst.CSTTransformer):
 
 ### --- *_bugger functions ---
 
+
 def module_not_found_bugger(py_files, num_bugs):
     """Induce a ModuleNotFoundError.
 
@@ -104,7 +114,7 @@ def module_not_found_bugger(py_files, num_bugs):
         Int: Number of bugs made.
     """
     # Find all relevant nodes.
-    paths_nodes = _get_paths_nodes_import(py_files)
+    paths_nodes = _get_paths_nodes(py_files, node_type=cst.Import)
 
     # Select the set of nodes to modify. If num_bugs is greater than the number
     # of nodes, just change each node.
@@ -133,6 +143,7 @@ def module_not_found_bugger(py_files, num_bugs):
 
     return bugs_added
 
+
 def attribute_error_bugger(py_files, num_bugs):
     """Induce an AttributeError.
 
@@ -140,7 +151,7 @@ def attribute_error_bugger(py_files, num_bugs):
         Int: Number of bugs made.
     """
     # Find all relevant nodes.
-    paths_nodes = _get_paths_nodes_attribute_error(py_files)
+    paths_nodes = _get_paths_nodes(py_files, node_type=cst.Attribute)
 
     # Select the set of nodes to modify. If num_bugs is greater than the number
     # of nodes, just change each node.
@@ -153,9 +164,20 @@ def attribute_error_bugger(py_files, num_bugs):
         source = path.read_text()
         tree = cst.parse_module(source)
 
+        # Pick node to modify if more than one match in the file.
+        # node_count = _count_nodes(tree, cst.Attribute)
+        node_count = _count_nodes(tree, node)
+        if node_count > 1:
+            node_index = random.randrange(0, node_count - 1)
+        else:
+            node_index = 0
+        # breakpoint()
+        # print("nc:", node_count)
+        # print("node:", node)
+
         # Modify user's code.
         try:
-            modified_tree = tree.visit(AttributeModifier(node))
+            modified_tree = tree.visit(AttributeModifier(node, node_index))
         except TypeError:
             # DEV: Figure out which nodes are ending up here, and update
             # modifier code to handle these nodes.
@@ -172,34 +194,70 @@ def attribute_error_bugger(py_files, num_bugs):
 
 # --- Helper functions ---
 
-def _get_paths_nodes_import(py_files):
-    """Get all import-related nodes."""
+
+def _get_paths_nodes(py_files, node_type):
+    """Get all nodes of given type."""
     paths_nodes = []
     for path in py_files:
         source = path.read_text()
         tree = cst.parse_module(source)
 
-        # Collect all import nodes.
-        import_collector = ImportCollector()
-        tree.visit(import_collector)
+        node_collector = NodeCollector(node_type=node_type)
+        tree.visit(node_collector)
 
-        for node in import_collector.import_nodes:
+        for node in node_collector.collected_nodes:
             paths_nodes.append((path, node))
 
     return paths_nodes
 
-def _get_paths_nodes_attribute_error(py_files):
-    """Get all nodes representing attributes."""
-    paths_nodes = []
-    for path in py_files:
-        source = path.read_text()
-        tree = cst.parse_module(source)
 
-        # Collect all import nodes.
-        attribute_collector = AttributeCollector()
-        tree.visit(attribute_collector)
+# class NodeCounter(cst.CSTVisitor):
+#     """Count all nodes of a specific kind."""
 
-        for node in attribute_collector.attribute_nodes:
-            paths_nodes.append((path, node))
+#     def __init__(self, node_type):
+#         self.node_type = node_type
+#         self.node_count = 0
 
-    return paths_nodes
+#     def on_visit(self, node):
+#         """Increment node_count if node matches.."""
+#         if isinstance(node, self.node_type):
+#             self.node_count += 1
+#         return True
+
+
+# def _count_nodes(tree, node_type):
+#     """Count the number of nodes in path that match node.
+
+#     Useful when a file has multiple identical nodes, and we want to choose one.
+#     """
+#     # Count all relevant nodes.
+#     node_counter = NodeCounter(node_type)
+#     tree.visit(node_counter)
+
+#     return node_counter.node_count
+
+
+class NodeCounter(cst.CSTVisitor):
+    """Count all nodes matching the target node."""
+
+    def __init__(self, target_node):
+        self.target_node = target_node
+        self.node_count = 0
+
+    def on_visit(self, node):
+        """Increment node_count if node matches.."""
+        if node.deep_equals(self.target_node):
+            self.node_count += 1
+        return True
+
+
+def _count_nodes(tree, node):
+    """Count the number of nodes in path that match node.
+
+    Useful when a file has multiple identical nodes, and we want to choose one.
+    """
+    # Count all relevant nodes.
+    node_counter = NodeCounter(node)
+    tree.visit(node_counter)
+
+    return node_counter.node_count

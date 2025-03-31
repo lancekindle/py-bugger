@@ -11,6 +11,7 @@ import pytest
 @pytest.fixture(autouse=True, scope="session")
 def set_random_seed_env():
     """Make random selections repeatable."""
+    # To verify a random action, set autouse to False and run one test.
     os.environ["PY_BUGGER_RANDOM_SEED"] = "10"
 
 
@@ -34,6 +35,7 @@ def e2e_config():
         path_ten_imports = path_sample_scripts / "ten_imports.py"
         path_zero_imports = path_sample_scripts / "zero_imports.py"
         path_dog = path_sample_scripts / "dog.py"
+        path_identical_attributes = path_sample_scripts / "identical_attributes.py"
 
         # Python executable
         if sys.platform == "win32":
