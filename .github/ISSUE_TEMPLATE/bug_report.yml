@@ -1,0 +1,21 @@
+name: Bug Report
+description: Open a new bug report
+title: "[BUG]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to report a bug.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Briefly describe the bug. Please be as specific as possible.
+  - type: textarea:
+    id: environment
+    attributes:
+      label: Environment
+      description: Please describe the environment in which the program was run. What operating system are you using? What version of Python are you using? How was the project and its dependencies installed?
+
