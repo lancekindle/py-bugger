@@ -13,7 +13,7 @@ body:
     attributes:
       label: Description
       description: Briefly describe the bug. Please be as specific as possible.
-  - type: textarea:
+  - type: textarea
     id: environment
     attributes:
       label: Environment
