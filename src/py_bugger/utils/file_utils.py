@@ -9,8 +9,13 @@ import sys
 # --- Public functions ---
 
 
-def get_py_files(target_dir):
+def get_py_files(target_dir, target_file):
     """Get all the .py files we can consider modifying when introducing bugs."""
+    # Check if user requested a single target file.
+    if target_file:
+        return [target_file]
+
+    # Use .gitignore if possible.
     path_git = target_dir / ".git"
     if path_git.exists():
         return _get_py_files_git(target_dir)

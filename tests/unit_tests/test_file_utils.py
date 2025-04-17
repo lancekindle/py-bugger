@@ -1,4 +1,8 @@
-"""Tests for utils/file_utils.py."""
+"""Tests for utils/file_utils.py.
+
+This module does not use pb_config directly. That makes unit testing easier. To use
+pb_config here, update tests to create an appropriate pb_config object.
+"""
 
 from pathlib import Path
 
@@ -12,7 +16,7 @@ def test_get_py_files_git():
     # at this project directory and just test a few files that should show up, and
     # some that should be excluded.
     root_dir = Path(__file__).parents[2]
-    py_files = file_utils.get_py_files(root_dir)
+    py_files = file_utils.get_py_files(root_dir, target_file="")
     filenames = [pf.name for pf in py_files]
 
     assert "__init__.py" in filenames
@@ -40,7 +44,7 @@ def test_get_py_files_non_git(tmp_path_factory):
         path = tmp_path / file
         path.touch()
 
-    py_files = file_utils.get_py_files(tmp_path)
+    py_files = file_utils.get_py_files(tmp_path, target_file="")
     filenames = [pf.name for pf in py_files]
 
     assert "hello.py" in filenames
@@ -48,3 +52,25 @@ def test_get_py_files_non_git(tmp_path_factory):
 
     assert "conftest.py" not in filenames
     assert "test_project.py" not in filenames
+
+
+def test_get_py_files_target_file(tmp_path_factory):
+    """Test function for getting .py files when target_file is set."""
+    # Build a tmp dir with some files that should be gathered, and some that
+    # should not.
+    tmp_path = tmp_path_factory.mktemp("sample_non_git_dir")
+
+    path_tests = Path(tmp_path) / "tests"
+    path_tests.mkdir()
+
+    files = ["hello.py", "goodbye.py", "conftest.py", "tests/test_project.py"]
+    for file in files:
+        path = tmp_path / file
+        path.touch()
+
+        # Set goodbye.py as the target file.
+        if file == "goodbye.py":
+            target_file = path
+
+    py_files = file_utils.get_py_files(tmp_path, target_file)
+    assert py_files == [target_file]
