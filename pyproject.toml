@@ -28,6 +28,6 @@ where = ["src"]
 py-bugger = "py_bugger.cli.cli:cli"
 
 [project.urls]
-"Documentation" = "https://github.com/ehmatthes/py-bugger"
+"Documentation" = "https://py-bugger.readthedocs.io/en/latest/"
 "GitHub" = "https://github.com/ehmatthes/py-bugger"
 "Changelog" = "https://github.com/ehmatthes/py-bugger/blob/main/CHANGELOG.md"
