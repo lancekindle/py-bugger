@@ -146,7 +146,7 @@ INFO    -  Building documentation...
 INFO    -  [16:24:31] Serving on http://127.0.0.1:8000/
 ```
 
-With the documentation server running, you can open a browser to the address shown and view a local copy of the docs. When you modify the files in `docs/`, you should see those changes immediately in your browser session.
+With the documentation server running, you can open a browser to the address shown and view a local copy of the docs. When you modify the files in `docs/`, you should see those changes immediately in your browser session. Sidebar navigation is configured in `mkdocs.yml`.
 
 ## Testing
 

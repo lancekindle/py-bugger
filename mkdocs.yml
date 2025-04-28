@@ -26,8 +26,7 @@ nav:
   - "Contributing":
     - "contributing/index.md"
     - "Roadmap": "contributing/roadmap.md"
-
-
+  - "Maintaining": "maintaining/index.md"
 
 theme: 
   name: material
