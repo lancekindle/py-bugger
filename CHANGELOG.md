@@ -9,7 +9,8 @@ Can request more than one type of exception to be induced.
 
 #### External changes
 
-- NA
+- Does not modify files in directories named `Tests/`.
+- Moved docs to Read the Docs.
 
 #### Internal changes
 
