@@ -135,6 +135,19 @@ Consider trying to induce an `AttributeError`. We want to find all attributes in
 
 As the project evolves, most work will probably be done using the CST. It may be worthwhile to offer a `--quick` or `--fast` argument, which prefers non-CST parsing even if it means a smaller variety of possible bugs.
 
+## Updating documentation
+
+Start a local documentation server:
+
+```sh
+(.venv)$ mkdocs serve
+INFO    -  Building documentation...
+...
+INFO    -  [16:24:31] Serving on http://127.0.0.1:8000/
+```
+
+With the documentation server running, you can open a browser to the address shown and view a local copy of the docs. When you modify the files in `docs/`, you should see those changes immediately in your browser session.
+
 ## Testing
 
 `py-bugger` currently has a small set of unit and end-to-end tests. The project is still evolving, and there's likely some significant refactoring that will happen before it fully stabilizes internally. We're aiming for test coverage that preserves current functionality, but isn't overly fragile to refactoring. Currently, the focus is on e2e tests for all significant external behavior, and unit tests for critical and stable utilities.
