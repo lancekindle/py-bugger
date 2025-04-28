@@ -16,7 +16,7 @@ $ pip install python-bugger
 
 Note: The package name is python-bugger, because py-bugger was unavailable on PyPI.
 
-## Introducing a bug into a project
+## Basic usage
 
 If you don't specify a target directory or file, `py-bugger` will look at all *.py* files in the current directory before deciding where to insert a bug. If the directory is a Git repository, it will follow the rules in *.gitignore*. It will also avoid introducing bugs into test directories and virtual environments that follow familiar naming patterns.
 
@@ -36,4 +36,4 @@ For more about usage, see the [Quick Start](https://py-bugger.readthedocs.io/en/
 Contributing
 ---
 
-If you're interested in this project, please feel free to get in touch. If you have general feedback or just want to see the project progress, please share your thoughts in the [Initial feedback](https://github.com/ehmatthes/py-bugger/discussions/7) discussion. Also, feel free to [open a new issue](https://github.com/ehmatthes/py-bugger/issues/new). The [contributing](https://py-bugger.readthedocs.io/en/latest/contributing/) section in the offical docs has more information about how to contribute.
+If you're interested in this project, please feel free to get in touch. If you have general feedback or just want to see the project progress, please share your thoughts in the [Initial feedback](https://github.com/ehmatthes/py-bugger/discussions/7) discussion. Also, feel free to [open a new issue](https://github.com/ehmatthes/py-bugger/issues/new). The [contributing](https://py-bugger.readthedocs.io/en/latest/contributing/) section in the official docs has more information about how to contribute.
