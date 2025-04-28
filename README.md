@@ -30,7 +30,7 @@ Introducing a ModuleNotFoundError...
 
 When you run the project again, it should fail with a `ModuleNotFoundError`.
 
-For more about usage, see the [Quick Start](https://py-bugger.readthedocs.io/en/latest/quick_start/) and [Usage](https://py-bugger.readthedocs.io/en/latest/usage/) pages in the official [docs](https://py-bugger.readthedocs.io/en/latest/).
+For more details, see the [Quick Start](https://py-bugger.readthedocs.io/en/latest/quick_start/) and [Usage](https://py-bugger.readthedocs.io/en/latest/usage/) pages in the official [docs](https://py-bugger.readthedocs.io/en/latest/).
 
 
 Contributing
