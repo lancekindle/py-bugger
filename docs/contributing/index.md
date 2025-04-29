@@ -8,6 +8,8 @@ hide:
 
 This project is still in an early phase of development, so it's a great time to jump in if you're interested. Please open or comment in an [issue](https://github.com/ehmatthes/py-bugger/issues) or a [discussion](https://github.com/ehmatthes/py-bugger/discussions) before starting any work you'd like to see merged, so we're all on the same page.
 
+All ideas are welcome at this point. If you're looking for specific tasks to help with, see the [Good first tasks](https://github.com/ehmatthes/py-bugger/issues/36) issue.
+
 ## Setting up a development environment
 
 Clone the project, and run the tests:
