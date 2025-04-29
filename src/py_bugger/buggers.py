@@ -7,11 +7,13 @@ from py_bugger.utils import cst_utils
 from py_bugger.utils import file_utils
 from py_bugger.utils import bug_utils
 
+from py_bugger.cli.config import pb_config
+
 
 ### --- *_bugger functions ---
 
 
-def module_not_found_bugger(py_files, num_bugs):
+def module_not_found_bugger(py_files):
     """Induce a ModuleNotFoundError.
 
     Returns:
@@ -22,7 +24,7 @@ def module_not_found_bugger(py_files, num_bugs):
 
     # Select the set of nodes to modify. If num_bugs is greater than the number
     # of nodes, just change each node.
-    num_changes = min(len(paths_nodes), num_bugs)
+    num_changes = min(len(paths_nodes), pb_config.num_bugs)
     paths_nodes_modify = random.sample(paths_nodes, k=num_changes)
 
     # Modify each relevant path.
@@ -42,13 +44,13 @@ def module_not_found_bugger(py_files, num_bugs):
             ...
         else:
             path.write_text(modified_tree.code)
-            print(f"Added bug to: {path.as_posix()}")
+            _report_bug_added(path)
             bugs_added += 1
 
     return bugs_added
 
 
-def attribute_error_bugger(py_files, num_bugs):
+def attribute_error_bugger(py_files):
     """Induce an AttributeError.
 
     Returns:
@@ -59,7 +61,7 @@ def attribute_error_bugger(py_files, num_bugs):
 
     # Select the set of nodes to modify. If num_bugs is greater than the number
     # of nodes, just change each node.
-    num_changes = min(len(paths_nodes), num_bugs)
+    num_changes = min(len(paths_nodes), pb_config.num_bugs)
     paths_nodes_modify = random.sample(paths_nodes, k=num_changes)
 
     # Modify each relevant path.
@@ -86,13 +88,13 @@ def attribute_error_bugger(py_files, num_bugs):
             ...
         else:
             path.write_text(modified_tree.code)
-            print(f"Added bug to: {path.as_posix()}")
+            _report_bug_added(path)
             bugs_added += 1
 
     return bugs_added
 
 
-def indentation_error_bugger(py_files, num_bugs):
+def indentation_error_bugger(py_files):
     """Induce an IndentationError.
 
     This simply parses raw source files. Conditions are pretty concrete, and LibCST
@@ -121,14 +123,14 @@ def indentation_error_bugger(py_files, num_bugs):
 
     # Select the set of lines to modify. If num_bugs is greater than the number
     # of lines, just change each line.
-    num_changes = min(len(paths_lines), num_bugs)
+    num_changes = min(len(paths_lines), pb_config.num_bugs)
     paths_lines_modify = random.sample(paths_lines, k=num_changes)
 
     # Modify each relevant path.
     bugs_added = 0
     for path, target_line in paths_lines_modify:
         if bug_utils.add_indentation(path, target_line):
-            print(f"Added bug to: {path.as_posix()}")
+            _report_bug_added(path)
             bugs_added += 1
 
     return bugs_added
@@ -137,3 +139,11 @@ def indentation_error_bugger(py_files, num_bugs):
 # --- Helper functions ---
 # DEV: This is a good place for helper functions, before they are refined enough
 # to move to utils/.
+
+
+def _report_bug_added(path_modified):
+    """Report that a bug was added."""
+    if pb_config.verbose:
+        print(f"Added bug to: {path_modified.as_posix()}")
+    else:
+        print(f"Added bug.")
