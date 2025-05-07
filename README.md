@@ -1,3 +1,5 @@
+![py-bugger logo](assets/logo_raw_bordered.png)
+
 py-bugger
 ===
 
