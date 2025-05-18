@@ -136,6 +136,75 @@ def indentation_error_bugger(py_files):
     return bugs_added
 
 
+def nonetype_attribute_error_bugger(py_files):
+    """Induce a 'NoneType' object has no attribute error.
+    
+    Finds function calls where the result is accessed with an attribute,
+    then modifies the function to return None.
+    
+    Returns:
+        Int: Number of bugs made.
+    """
+    # Track all potential paths and nodes for modification
+    all_paths_nodes = []
+    
+    # First pass - find all attribute accesses on function calls
+    for path in py_files:
+        source = path.read_text()
+        tree = cst.parse_module(source)
+        
+        # Get all attribute accesses on function calls
+        attr_nodes = cst_utils.get_function_call_attributes(tree)
+        for node in attr_nodes:
+            all_paths_nodes.append((path, node))
+    
+    # Select the set of nodes to modify
+    num_changes = min(len(all_paths_nodes), pb_config.num_bugs)
+    if num_changes == 0:
+        return 0
+        
+    paths_nodes_modify = random.sample(all_paths_nodes, k=num_changes)
+    
+    # Modify each relevant path
+    bugs_added = 0
+    for path, node in paths_nodes_modify:
+        source = path.read_text()
+        tree = cst.parse_module(source)
+        
+        # Find which function to modify
+        func_name = None
+        if isinstance(node.value, cst.Call) and isinstance(node.value.func, cst.Name):
+            func_name = node.value.func.value
+        
+        if not func_name:
+            continue
+            
+        # Look for function definition
+        function_found = False
+        
+        # Check if function is defined in this file
+        for module_node in tree.body:
+            if isinstance(module_node, cst.FunctionDef) and module_node.name.value == func_name:
+                function_found = True
+                break
+        
+        if not function_found:
+            # Function might be defined in another file, skip for now
+            continue
+        
+        # Modify the function to return None
+        try:
+            modified_tree = tree.visit(cst_utils.ReturnNoneModifier(node))
+            path.write_text(modified_tree.code)
+            _report_bug_added(path)
+            bugs_added += 1
+        except Exception:
+            # Skip if we can't modify this function
+            continue
+            
+    return bugs_added
+
+
 # --- Helper functions ---
 # DEV: This is a good place for helper functions, before they are refined enough
 # to move to utils/.

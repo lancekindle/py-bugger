@@ -102,6 +102,70 @@ class AttributeModifier(cst.CSTTransformer):
         return updated_node
 
 
+class FunctionCallAttributeCollector(cst.CSTVisitor):
+    """Collect attribute accesses on function call results."""
+
+    def __init__(self):
+        super().__init__()
+        self.collected_nodes = []
+
+    def leave_Attribute(self, original_node):
+        """Visit attribute nodes after visiting child nodes.
+        
+        We use leave instead of visit to ensure we've already visited all children.
+        """
+        # Check if this attribute is accessed on a function call
+        if isinstance(original_node.value, cst.Call):
+            self.collected_nodes.append(original_node)
+        return True
+
+
+class ReturnNoneModifier(cst.CSTTransformer):
+    """Modify a function to return None instead of its original return value."""
+
+    def __init__(self, target_node):
+        self.target_node = target_node
+        self.function_name = None
+        self.bug_generated = False
+        
+        # Extract function name directly from the target_node
+        if isinstance(target_node.value, cst.Call) and isinstance(target_node.value.func, cst.Name):
+            self.function_name = target_node.value.func.value
+
+    def leave_FunctionDef(self, original_node, updated_node):
+        """Modify the target function's return values."""
+        if self.function_name and original_node.name.value == self.function_name and not self.bug_generated:
+            # Regardless of content, replace all returns with bare return
+            modified_body = []
+            for stmt in updated_node.body.body:
+                if isinstance(stmt, cst.SimpleStatementLine):
+                    modified_stmt_body = []
+                    for inner_stmt in stmt.body:
+                        if isinstance(inner_stmt, cst.Return) and inner_stmt.value is not None:
+                            # Replace with bare return
+                            modified_stmt_body.append(inner_stmt.with_changes(value=None))
+                            self.bug_generated = True
+                        else:
+                            modified_stmt_body.append(inner_stmt)
+                            
+                    if modified_stmt_body:
+                        modified_body.append(stmt.with_changes(body=modified_stmt_body))
+                    else:
+                        modified_body.append(stmt)
+                else:
+                    modified_body.append(stmt)
+            
+            # If we didn't find any returns to modify, add one at the end
+            if not self.bug_generated:
+                none_return = cst.SimpleStatementLine(body=[cst.Return(value=None)])
+                modified_body.append(none_return)
+                self.bug_generated = True
+                
+            return updated_node.with_changes(body=updated_node.body.with_changes(body=modified_body))
+                
+        return updated_node
+
+
 def get_paths_nodes(py_files, node_type):
     """Get all nodes of given type."""
     paths_nodes = []
@@ -146,3 +210,14 @@ def count_nodes(tree, node):
     tree.visit(node_counter)
 
     return node_counter.node_count
+
+
+def get_function_call_attributes(tree):
+    """Get all attribute accesses on function call results.
+    
+    Returns:
+        List of attribute nodes accessing function call results.
+    """
+    collector = FunctionCallAttributeCollector()
+    tree.visit(collector)
+    return collector.collected_nodes

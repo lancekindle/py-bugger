@@ -12,7 +12,7 @@ from py_bugger.cli.config import pb_config
     "--exception-type",
     "-e",
     type=str,
-    help="What kind of exception to induce: ModuleNotFoundError, AttributeError, or IndentationError",
+    help="What kind of exception to induce: ModuleNotFoundError, AttributeError, IndentationError, or NoneTypeAttributeError",
 )
 @click.option(
     "--target-dir",
