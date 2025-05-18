@@ -5,8 +5,8 @@ Usage: py-bugger [OPTIONS]
 
 Options:
   -e, --exception-type TEXT  What kind of exception to induce:
-                             ModuleNotFoundError, AttributeError, or
-                             IndentationError
+                             ModuleNotFoundError, AttributeError,
+                             IndentationError, or NoneTypeAttributeError
   --target-dir TEXT          What code directory to target. (Be careful when
                              using this arg!)
   --target-file TEXT         Target a single .py file.
